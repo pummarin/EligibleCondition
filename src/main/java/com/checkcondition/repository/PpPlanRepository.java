@@ -6,7 +6,11 @@ import com.checkcondition.model.Input;
 import org.springframework.stereotype.Repository;
 
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.Period;
+import java.time.ZoneId;
 import java.util.Date;
+import java.util.Locale;
 
 
 @Repository
@@ -14,26 +18,13 @@ public class PpPlanRepository {
 
     public Eligible check(Input input){
         SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
-//        try {
-//            Date date = formatter.parse(input.getBod());
-//            date.setDate(date.getDate()-1);
-//            String strDate= formatter.format(date);
-//            System.out.println(strDate);
-//
-//        }catch (Exception e){
-//            e.getMessage();
-//        }
 
         PpPlan p = new PpPlan();
-//        Dmy begin = new Dmy();
-//        Dmy end = new Dmy();
-//        Dmy bod = new Dmy();
+
         Eligible eligible = new Eligible();
 
-//        String[] pStart = new String[2];
-//        String[] pEnd = new String[2];
         Date dob = new Date();
-
+        Date currentDay = new Date();
         //start service
         try {
             p.setServiceStart(formatter.parse("01/09/2020")) ;
@@ -41,10 +32,6 @@ public class PpPlanRepository {
         }catch (Exception e){
             e.getMessage();
         }
-//        pStart = p.getServiceStart().split("/");
-//        begin.setDd(Long.parseLong(pStart[0]));
-//        begin.setMm(Long.parseLong(pStart[1]));
-//        begin.setYyyy(Long.parseLong(pStart[2]));
 
         //end service
         try {
@@ -52,12 +39,6 @@ public class PpPlanRepository {
         }catch (Exception e){
             e.getMessage();
         }
-
-//        pEnd = p.getServiceEnd().split("/");
-//        end.setDd(Long.parseLong(pEnd[0]));
-//        end.setMm(Long.parseLong(pEnd[1]));
-//        end.setYyyy(Long.parseLong(pEnd[2]));
-
         p.setSubItemNo("c19");
 
         //user BOD
@@ -68,68 +49,40 @@ public class PpPlanRepository {
             e.getMessage();
         }
 
-//        dob.setDd(Long.parseLong(uDate[0]));
-//        dob.setMm(Long.parseLong(uDate[1]));
-//        dob.setYyyy(Long.parseLong(uDate[2]));
+        LocalDate toDay = LocalDate.now();
+        LocalDate start = p.getServiceStart().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        LocalDate end = p.getServiceEnd().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        LocalDate uDob = dob.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+
 
         if (input.getGender().equals("F") || input.getGender().equals("M")) {
-            if (p.getServiceStart().getYear() - dob.getYear() > 65){
-                eligible.setEligibleFlag("Y");
-                eligible.setEligibleStart(dateOfStart2(p.getServiceStart()));
-                eligible.setEligibleEnd(serviceEnd(p.getServiceEnd()));
-                System.out.println("1111");
+            if (toDay.isAfter(start) && toDay.isBefore(end.plusDays(1))) {
+                if (input.getType().toLowerCase(Locale.ROOT).equals("gt")) {
+                    if (graterThan65(toDay, uDob, 65)) {
+                        if (currentDay.getMonth() == p.getServiceEnd().getMonth() && currentDay.getDate() == p.getServiceEnd().getDate()){
+                            return setEligible(dateOfStart2(currentDay),serviceEnd(p.getServiceEnd()),"Y");
+                        }else{
+                            return setEligible(dateOfStart2(p.getServiceStart()),serviceEnd(p.getServiceEnd()),"Y");
+                        }
 
-            }else if ((p.getServiceStart().getYear() - dob.getYear()) == 65) {
-                if (p.getServiceStart().getMonth() == dob.getMonth()) {
-                    eligible.setEligibleFlag("Y");
-                    eligible.setEligibleStart(dateOfStart(dob,p.getServiceStart()));
-                    eligible.setEligibleEnd(serviceEnd(p.getServiceEnd()));
-                    System.out.println("2222");
-                }else if (dob.getMonth() > p.getServiceStart().getMonth()) {
-                    eligible.setEligibleFlag("Y");
-                    eligible.setEligibleStart(dateOfStart2(p.getServiceStart()));
-                    eligible.setEligibleEnd(serviceEndBeforDob(dob,p.getServiceEnd()));
-                    System.out.println("3333");
-                }else {
-                    eligible.setEligibleFlag("Y");
-                    eligible.setEligibleStart(dateOfStart2(p.getServiceStart()));
-                    eligible.setEligibleEnd(serviceEnd(p.getServiceEnd()));
-                    System.out.println("4444");
-
+                    }else if (equal65(toDay, uDob, 65) && dob.getMonth() < p.getServiceEnd().getMonth() && dob.getDate() < p.getServiceEnd().getDate()){
+                            return setEligible(dateOfStart(dob,currentDay),serviceEnd(p.getServiceEnd()),"Y");
+                    }else {
+                        return setEligible(null,null,"N");
+                    }
                 }
-            }else if ((p.getServiceStart().getYear() - dob.getYear() >= 0) && (p.getServiceStart().getYear() - dob.getYear()) <= 2) {
-                if (p.getServiceStart().getMonth() - dob.getMonth() >= 6){
-                    eligible.setEligibleFlag("Y");
-                    eligible.setEligibleStart(dateOfStart(dob,p.getServiceStart()));
-                    eligible.setEligibleEnd(serviceEnd(p.getServiceEnd()));
-                    System.out.println("5555");
-                }else{
-                    eligible.setEligibleFlag("N");
-                    eligible.setEligibleStart(null);
-                    eligible.setEligibleEnd(null);
-                    System.out.println("6666");
-                }
+//            else if (input.getType().equals("bw")){
+//
+//            }else{
+//
+//            }
 
-            }else if ((p.getServiceStart().getYear() - dob.getYear()) < 65 && (p.getServiceStart().getYear() - dob.getYear() > 2)) {
-                System.out.println(p.getServiceStart().getYear());
-                System.out.println(dob.getYear());
-                eligible.setEligibleFlag("Y");
-                eligible.setEligibleStart(dateOfStart2(p.getServiceStart()));
-                eligible.setEligibleEnd(serviceEndBeforDob(dob,p.getServiceEnd()));
-                System.out.println("7777");
-
-            }else  {
-                eligible.setEligibleFlag("N");
-                eligible.setEligibleStart(null);
-                eligible.setEligibleEnd(null);
-                System.out.println("8888");
+            }else {
+                return setEligible(null,null,"N");
             }
-        }else{
-            eligible.setEligibleFlag("N");
-            eligible.setEligibleStart(null);
-            eligible.setEligibleEnd(null);
-            System.out.println("9999");
+
         }
+
         return eligible;
     }
     public String dateOfStart(Date a,Date b){
@@ -151,6 +104,7 @@ public class PpPlanRepository {
         String strDate= formatter.format(a);
         return strDate;
     }
+
     public String serviceEndBeforDob(Date a,Date b){
         SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
         a.setDate(a.getDate()-1);
@@ -158,5 +112,49 @@ public class PpPlanRepository {
         String strDate= formatter.format(a);
         return strDate;
     }
+    public Eligible setEligible(String start,String end,String c){
+        Eligible eligible = new Eligible();
+        eligible.setEligibleFlag(c);
+        eligible.setEligibleStart(start);
+        eligible.setEligibleEnd(end);
+        return eligible;
+    }
 
+    public boolean graterThan65(LocalDate begin,LocalDate dob, int number){
+        boolean result = false;
+        Period p = Period.between(dob,begin);
+        System.out.println(p.getYears()+" year "+ p.getMonths()+" month "+p.getDays()+" day");
+        if (p.getYears()>= 65 && p.getMonths() >= 0 && p.getDays() >0){
+            result = true;
+            System.out.println(result);
+        }else {
+            System.out.println(result);
+        }
+        return result;
+    }
+    public boolean equal65(LocalDate begin,LocalDate dob, int number){
+        boolean result = false;
+        Period p = Period.between(dob,begin);
+        System.out.println(p.getYears()+" year "+ p.getMonths()+" month "+p.getDays()+" day");
+        if (p.getYears() == 65 && p.getMonths() == 0 && p.getDays() ==0){
+            result = true;
+            System.out.println(result);
+        }else {
+            System.out.println(result);
+        }
+        return result;
+    }
+
+    public boolean isBw6m2y(LocalDate begin,LocalDate dob, int num, int num2){
+        boolean result = false;
+        Period p = Period.between(dob,begin);
+        System.out.println(p.getYears()+" year "+ p.getMonths()+" month "+p.getDays()+" day");
+        if (p.getYears()>= 65 && p.getMonths() >= 0 && p.getDays() >0){
+            result = true;
+            System.out.println(result);
+        }else {
+            System.out.println(result);
+        }
+        return result;
+    }
 }

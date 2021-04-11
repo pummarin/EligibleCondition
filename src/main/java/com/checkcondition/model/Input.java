@@ -6,5 +6,5 @@ import lombok.Data;
 public class Input {
     private String dob;
     private String gender;
-    private String subItemNo;
+    private String type;
 }
