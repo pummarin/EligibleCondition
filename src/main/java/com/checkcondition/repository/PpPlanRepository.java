@@ -35,7 +35,7 @@ public class PpPlanRepository {
 
         //end service
         try {
-            p.setServiceEnd(formatter.parse("30/09/2021"));
+            p.setServiceEnd(formatter.parse("12/04/2021"));
         }catch (Exception e){
             e.getMessage();
         }
@@ -70,7 +70,7 @@ public class PpPlanRepository {
                     }else {
                         return setEligible(null,null,"N");
                     }
-                }else if (input.getType().equals("bw")){
+                }else if (input.getType().toLowerCase(Locale.ROOT).equals("bw")){
                     if(isBw6m2y(toDay, uDob,6,2)){
                         if (uDob.plusMonths(6).isBefore(start)){
                             return setEligible(dateOfStart2(p.getServiceStart()),serviceEnd(p.getServiceEnd()),"Y");
@@ -80,8 +80,13 @@ public class PpPlanRepository {
                     }else {
                         return setEligible(null, null, "N");
                     }
-                }else if (input.getType().equals("lt")){
-                    return setEligible(null,null,"N");
+                }else if (input.getType().toLowerCase(Locale.ROOT).equals("lt")){
+                    if (lessThan65(toDay,uDob,65)){
+                        return setEligible(dateOfStart2(p.getServiceStart()),serviceEnd(p.getServiceEnd()),"Y");
+                    }else {
+                        return setEligible(null,null,"N");
+                    }
+
                 }else {
                     return setEligible(null,null,"N");
                 }
@@ -178,6 +183,18 @@ public class PpPlanRepository {
         }else {
             System.out.println(3);
 
+        }
+        return result;
+    }
+    public boolean lessThan65(LocalDate begin,LocalDate dob, int number){
+        boolean result = false;
+        Period p = Period.between(dob,begin);
+        System.out.println(p.getYears()+" year "+ p.getMonths()+" month "+p.getDays()+" day");
+        if (p.getYears() < 65 ){
+            result = true;
+            System.out.println(result);
+        }else {
+            System.out.println(result);
         }
         return result;
     }
