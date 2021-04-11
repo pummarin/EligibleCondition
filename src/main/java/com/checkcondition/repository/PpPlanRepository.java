@@ -56,7 +56,7 @@ public class PpPlanRepository {
 
 
         if (input.getGender().equals("F") || input.getGender().equals("M")) {
-            if (toDay.isAfter(start) && toDay.isBefore(end.plusDays(1))) {
+            if (toDay.isAfter(start.minusDays(1)) && toDay.isBefore(end.plusDays(1))) {
                 if (input.getType().toLowerCase(Locale.ROOT).equals("gt")) {
                     if (graterThan65(toDay, uDob, 65)) {
                         if (currentDay.getMonth() == p.getServiceEnd().getMonth() && currentDay.getDate() == p.getServiceEnd().getDate()){
@@ -70,25 +70,43 @@ public class PpPlanRepository {
                     }else {
                         return setEligible(null,null,"N");
                     }
+                }else if (input.getType().equals("bw")){
+                    if(isBw6m2y(toDay, uDob,6,2)){
+                        if (uDob.plusMonths(6).isBefore(start)){
+                            return setEligible(dateOfStart2(p.getServiceStart()),serviceEnd(p.getServiceEnd()),"Y");
+                        }else  {
+                            return setEligible(datePulsMonth(dob),serviceEnd(p.getServiceEnd()),"Y");
+                        }
+                    }else {
+                        return setEligible(null, null, "N");
+                    }
+                }else if (input.getType().equals("lt")){
+                    return setEligible(null,null,"N");
+                }else {
+                    return setEligible(null,null,"N");
                 }
-//            else if (input.getType().equals("bw")){
-//
-//            }else{
-//
-//            }
 
             }else {
                 return setEligible(null,null,"N");
             }
 
+        }else {
+            return setEligible(null,null,"N");
         }
 
-        return eligible;
     }
+
+
     public String dateOfStart(Date a,Date b){
         SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
         a.setDate(a.getDate()+1);
         a.setYear(b.getYear());
+        String strDate= formatter.format(a);
+        return strDate;
+    }
+    public String datePulsMonth(Date a){
+        SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
+        a.setMonth(a.getMonth()+6);
         String strDate= formatter.format(a);
         return strDate;
     }
@@ -145,15 +163,21 @@ public class PpPlanRepository {
         return result;
     }
 
-    public boolean isBw6m2y(LocalDate begin,LocalDate dob, int num, int num2){
+    public boolean isBw6m2y(LocalDate begin,LocalDate dob, int month, int year){
         boolean result = false;
         Period p = Period.between(dob,begin);
+        int sum = p.getYears()*12+ p.getMonths();
         System.out.println(p.getYears()+" year "+ p.getMonths()+" month "+p.getDays()+" day");
-        if (p.getYears()>= 65 && p.getMonths() >= 0 && p.getDays() >0){
+        if (sum >= 6 && sum <24){
             result = true;
             System.out.println(result);
+            System.out.println(1);
+        }else if (sum == 24 && p.getDays() == 0){
+            result = true;
+            System.out.println(2);
         }else {
-            System.out.println(result);
+            System.out.println(3);
+
         }
         return result;
     }
