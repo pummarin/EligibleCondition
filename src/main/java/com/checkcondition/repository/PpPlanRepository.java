@@ -35,7 +35,7 @@ public class PpPlanRepository {
 
         //end service
         try {
-            p.setServiceEnd(formatter.parse("12/04/2021"));
+            p.setServiceEnd(formatter.parse("30/09/2021"));
         }catch (Exception e){
             e.getMessage();
         }
